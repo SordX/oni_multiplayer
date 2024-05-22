@@ -6,12 +6,12 @@
         <DebugSymbols>true</DebugSymbols>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-        <DefineConstants/>
+        <DefineConstants />
         <Optimize>false</Optimize>
         <DebugType>portable</DebugType>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Publish' ">
-        <DefineConstants/>
+        <DefineConstants />
         <Optimize>true</Optimize>
         <DebugType>none</DebugType>
     </PropertyGroup>
@@ -33,6 +33,9 @@
         <OniSupportedContent>VANILLA_ID</OniSupportedContent>
         <OniMinimumSupportedBuild>577063</OniMinimumSupportedBuild>
         <OniApiVersion>2</OniApiVersion>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+      <DebugType>portable</DebugType>
     </PropertyGroup>
     <ItemGroup>
         <Content Include="$(UserProfile)\AppData\LocalLow\Klei\Oxygen Not Included\Player.log">
@@ -59,6 +62,9 @@
         <Reference Include="ImGui.NET" HintPath="$(ManagedPath)\ImGui.NET.dll" Private="false" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\MultiplayerMod.AttributeProcessor\MultiplayerMod.AttributeProcessor.csproj" Private="false"/>
+      <ProjectReference Include="..\MultiplayerMod.AttributeProcessor\MultiplayerMod.AttributeProcessor.csproj" Private="false"/>
+      <PackageReference Include="AssemblyExposer.MSBuild.Task" Version="0.1.5" Private="true" />
+      <PackageReference Include="AttributeProcessor.Annotations" Version="0.1.0" ExcludeAssets="runtime" />
+      <PackageReference Include="AttributeProcessor.MSBuild.Task" Version="0.1.3" />
     </ItemGroup>
 </Project>
