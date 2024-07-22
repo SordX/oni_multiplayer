@@ -9,6 +9,14 @@ namespace MultiplayerMod.Platform.Lan.Network;
 public class LanConfiguration
 {
     public static LanConfiguration instance = new LanConfiguration();
+    public static void reload() {
+        var newConfig = new LanConfiguration();
+        if (newConfig.isConfigured != instance.isConfigured) {
+            instance.log.Warning("Unable to enable/disable lan configuration while running, please restart Oxygen Not Included.");
+            return;
+        }
+        instance = newConfig;
+    }
 
     public bool isConfigured { get { return configured; } }
     public string serverIp {  get { return hostip; } }
@@ -75,4 +83,5 @@ public class LanConfiguration
         }
         return false;
     }
+
 }
