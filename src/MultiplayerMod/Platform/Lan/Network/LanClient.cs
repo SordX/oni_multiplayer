@@ -39,7 +39,8 @@ internal class LanClient : IMultiplayerClient {
     }
 
     public void Connect(IMultiplayerEndpoint endpoint) {
-        log.Debug("Client preparing to connect to server " + LanConfiguration.instance.hostUrl);
+        LanConfiguration.reload();
+        log.Info("Client connecting to server " + LanConfiguration.instance.hostUrl);
         commandQueue = new();
         network = new WebSocket(LanConfiguration.instance.hostUrl+"/oni");
         network.OnOpen += OnOpen;
@@ -53,7 +54,7 @@ internal class LanClient : IMultiplayerClient {
 
     public void Disconnect() {
         if (network == null) { return; }
-        log.Debug("Client preparing to disconnect from server");
+        log.Info("Client disconnected from server");
         var oldnetwork = network;
         network = null;
         oldnetwork.CloseAsync();
@@ -89,18 +90,17 @@ internal class LanClient : IMultiplayerClient {
     }
 
     private void OnOpen(object sender, EventArgs e) {
-        log.Debug("q Client connected to server");
+        log.Debug("Client connected to server");
         commandQueue.Enqueue(() => {
-            log.Debug("p Client connected to server");
             SetState(MultiplayerClientState.Connected);
         });
     }
 
     private void OnClose(object sender, CloseEventArgs e) {
-        log.Debug("q Client disconnected from server");
+        log.Debug("Client disconnected from server");
         commandQueue.Enqueue(() => {
-            log.Debug("p Client disconnected from server");
             if (State == MultiplayerClientState.Connecting) {
+                log.Warning("Multiplayer connection to server could not be established.");
                 MultiplayerStatusOverlay.Text = "Failed to connect to server";
                 Task _ = this.closeOverlay();
             }
@@ -116,18 +116,16 @@ internal class LanClient : IMultiplayerClient {
 
     private void OnMessage(object sender, MessageEventArgs e) {
         var message = NetworkMessage.from(e.RawData);
-        log.Debug("q Client received command " + message.Command.GetType() + ". Client " + Id + ". Len " + e.RawData.Length);
+        log.Debug("Client received command " + message.Command.GetType() + ". Client " + Id + ". Len " + e.RawData.Length);
         commandQueue.Enqueue(() => {
-            log.Debug("p Client received command " + message.Command.GetType() + ". Client " + Id + ". Len " + e.RawData.Length);
             if (State != MultiplayerClientState.Connected) { return; }
             CommandReceived?.Invoke(message.Command);
         });
     }
 
     private void OnError(object sender, ErrorEventArgs e) {
-        log.Debug("q Client error " + e.Message);
+        log.Warning("Client error " + e.Message);
         commandQueue.Enqueue(() => {
-            log.Debug("p Client error " + e.Message);
             SetState(MultiplayerClientState.Error);
         });
     }

@@ -16,4 +16,8 @@ public record LanMultiplayerClientId : IMultiplayerClientId {
     public bool Equals(IMultiplayerClientId other) {
         return other is LanMultiplayerClientId player && player.Equals(this);
     }
+
+    public override string ToString() {
+        return Id;
+    }
 }

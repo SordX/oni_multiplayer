@@ -53,7 +53,8 @@ internal class LanServer : IMultiplayerServer {
     }
 
     public void Start() {
-        log.Debug("Server preparing to listen on "+ LanConfiguration.instance.hostUrl);
+        LanConfiguration.reload();
+        log.Info("Server preparing to listen on "+ LanConfiguration.instance.hostUrl);
         commandQueue = new();
         SetState(MultiplayerServerState.Preparing);
         network = new WebSocketServer(LanConfiguration.instance.serverPort);
@@ -70,7 +71,7 @@ internal class LanServer : IMultiplayerServer {
         if (State <= MultiplayerServerState.Stopped)
             throw new NetworkPlatformException("Server isn't started");
 
-        log.Debug("Server preparing to stop");
+        log.Info("Server preparing to stop");
         if (gameObject != null) {
             UnityObject.Destroy(gameObject);
         }
@@ -118,12 +119,11 @@ internal class LanServer : IMultiplayerServer {
             log.Debug("Server sending command " + message.Command.GetType() + " to " + connections.Count() + " clients (including " + clientId + "). Len " + data.Length);
             connections.ForEach(client => { client.SendData(data); });
         } catch (Exception e) {
-            log.Debug("Server failed to send command " + message.Command.GetType() + " to " + connections.Count() + " clients (including " + clientId + "). " + e.Message);
+            log.Warning("Server failed to send command " + message.Command.GetType() + " to " + connections.Count() + " clients (including " + clientId + "). " + e.Message);
         }
     }
 
     internal void AddClient(LanServerClient lanServerClient) {
-        log.Debug("Server client connected - ID: " + lanServerClient.ID + ", IP: " + lanServerClient.Context.UserEndPoint.Address);
         LanMultiplayerClientId clientId;
         if (lanClientIdToClientId.Count() == 0 && LanClient.instance != null) {
             clientId = LanClient.instance.lanMultiplayerClientId;
@@ -133,16 +133,17 @@ internal class LanServer : IMultiplayerServer {
         lanClientIdToClientId.Add(lanServerClient.ID, clientId);
         clientIdToLanClient.Add(clientId, lanServerClient);
         commandQueue.Enqueue(() => {
+            log.Info("Server client connected - ID: " + clientId + ", IP: " + lanServerClient.Context.UserEndPoint.Address);
             ClientConnected?.Invoke(clientId);
         });
     }
 
     internal void RemoveClient(LanServerClient lanServerClient) {
-        log.Debug("Server client disconnected - ID: " + lanServerClient.ID);
         var clientId = lanClientIdToClientId[lanServerClient.ID];
         lanClientIdToClientId.Remove(lanServerClient.ID);
         clientIdToLanClient.Remove(clientId);
         commandQueue.Enqueue(() => {
+            log.Info("Server client disconnected - ID: " + clientId);
             ClientDisconnected?.Invoke(clientId);
         });
     }
@@ -189,7 +190,7 @@ internal class LanServerClient : WebSocketBehavior {
     }
 
     protected override void OnError(ErrorEventArgs e) {
-        log.Debug("Server client error " + e.Message);
+        log.Warning("Server client error " + e.Message);
     }
 
     internal void SendData(byte[] data) {
